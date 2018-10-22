@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import com.jannemec.control.*?>
+<?import com.jannemec.fxmlrpi.*?>
+
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jannemec.fxmlrpi.FXMLDocumentController">
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="293.0" minWidth="10.0" prefWidth="200.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="130.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="56.0" />
+      <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="103.0" />
+      <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="141.0" />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints maxHeight="75.0" minHeight="0.0" prefHeight="23.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="160.0" minHeight="10.0" prefHeight="31.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="217.0" minHeight="6.0" prefHeight="32.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="260.0" minHeight="3.0" prefHeight="29.0" vgrow="SOMETIMES" />
+        <RowConstraints maxHeight="284.0" minHeight="7.0" prefHeight="32.0" vgrow="SOMETIMES" />
+      <RowConstraints maxHeight="298.0" minHeight="10.0" prefHeight="252.0" vgrow="SOMETIMES" />
+    </rowConstraints>
+    <children>
+        <Label styleClass="my_label" text="Time:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+        <ClockControl fx:id="clockControl" text="??:??:??" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+        
+        
+        <Label fx:id="tempLabel" styleClass="my_label" text="Temperature:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+        <TextField fx:id="tempTextField" alignment="CENTER_RIGHT" editable="false" prefHeight="25.0" prefWidth="357.0" text="0.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        <Label styleClass="my_unit" text="C" GridPane.columnIndex="2" GridPane.rowIndex="1">
+         <padding>
+            <Insets left="10.0" />
+         </padding></Label>
+        
+        <Label fx:id="humidLabel" styleClass="my_label" text="Humidity:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+        <TextField fx:id="humidTextField" alignment="CENTER_RIGHT" editable="false" prefHeight="25.0" prefWidth="357.0" text="0.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+        <Label styleClass="my_unit" text="prct" GridPane.columnIndex="2" GridPane.rowIndex="2">
+         <padding>
+            <Insets left="10.0" />
+         </padding></Label>
+        
+        <Button fx:id="closeButton" mnemonicParsing="false" onAction="#handleCloseButtonAction" text="EXIT" textAlignment="CENTER" GridPane.columnIndex="4" GridPane.rowIndex="5">
+         <padding>
+            <Insets left="10.0" />
+         </padding></Button>
+      <Label fx:id="pressLabel" styleClass="my_label" text="Pressure" GridPane.rowIndex="3" />
+      <TextField fx:id="pressTextField" alignment="CENTER_RIGHT" editable="false" prefHeight="25.0" prefWidth="357.0" text="0.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+      <Label styleClass="my_unit" text="hPa" GridPane.columnIndex="2" GridPane.rowIndex="3">
+         <padding>
+            <Insets left="10.0" />
+         </padding>
+      </Label>
+      <TextField fx:id="temp2TextField" alignment="CENTER_RIGHT" editable="false" prefHeight="25.0" prefWidth="357.0" text="0.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+      <Label styleClass="my_unit" text="C" GridPane.columnIndex="4" GridPane.rowIndex="1">
+         <padding>
+            <Insets left="10.0" />
+         </padding>
+      </Label>
+      <TextField fx:id="press2TextField" alignment="CENTER_RIGHT" editable="false" prefHeight="25.0" prefWidth="357.0" text="0.0" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+      <Label styleClass="my_unit" text="hPa/sea level" GridPane.columnIndex="4" GridPane.rowIndex="3">
+         <padding>
+            <Insets left="10.0" />
+         </padding>
+      </Label>
+      <Label fx:id="altitudeLabel" styleClass="my_label" text="Altitude" GridPane.rowIndex="4" />
+      <TextField fx:id="altitudeTextField" alignment="CENTER_RIGHT" editable="false" prefHeight="25.0" prefWidth="357.0" text="0.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+      <Label styleClass="my_unit" text="m" GridPane.columnIndex="2" GridPane.rowIndex="4">
+         <padding>
+            <Insets left="10.0" />
+         </padding>
+      </Label>
+    </children>
+</GridPane>
