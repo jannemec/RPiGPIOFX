@@ -8,6 +8,7 @@ package com.jannemec.fxmlrpi;
 import com.jannemec.control.ClockControl;
 import com.jannemec.sensors.AM2321;
 import com.jannemec.sensors.BMP180;
+import com.jannemec.sensors.TSL2561;
 import com.jannemec.tools.MemCache;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -36,6 +37,7 @@ public class FXMLDocumentController implements Initializable {
     protected com.jannemec.tools.MemCache mCache = null;
     protected com.jannemec.sensors.AM2321 am2321 = null;
     protected com.jannemec.sensors.BMP180 bmp180 = null;
+    protected com.jannemec.sensors.TSL2561 tsl2561;
     
     @FXML
     private ClockControl clockControl;
@@ -57,6 +59,13 @@ public class FXMLDocumentController implements Initializable {
     private TextField press2TextField;
     @FXML
     private TextField altitudeTextField;
+    
+    @FXML
+    private TextField lightTextField;
+    @FXML
+    private TextField lightVisibleTextField;
+    @FXML
+    private TextField lightInfraTextField;
     
     
     @FXML
@@ -98,12 +107,9 @@ public class FXMLDocumentController implements Initializable {
         this.bmp180 = new BMP180(mCache);
         // Setup altitude based on position
         this.bmp180.setSensorAltitude(350);  // For Jesenice, Central Bohemia, Czech Republic
-        // Output data to screen
-        /*for(int i = 0; i < 2; i++) {
-            System.out.printf("Humidity : %.2f prct %n", am2321.getHumidity());
-            System.out.printf("Temperature in Celsius : %.2f C %n", am2321.getTemperature());
-            Thread.sleep(2000);
-        }*/
+        
+        
+        this.tsl2561 = new TSL2561(mCache);
         try {
             this.showValues();
         } catch (Exception ex) {
@@ -125,10 +131,15 @@ public class FXMLDocumentController implements Initializable {
     private void showValues() throws  Exception {
         this.humidTextField.setText(String.format("%.0f", (double) this.am2321.getHumidity()));
         this.tempTextField.setText(String.format("%.1f", (double) this.am2321.getTemperature()));
+        
         this.temp2TextField.setText(String.format("%.1f", (double) this.bmp180.getTemperature()));
         this.pressTextField.setText(String.format("%.0f", (double) this.bmp180.getPressure()));
         this.press2TextField.setText(String.format("%.0f", (double) this.bmp180.getPressureAtSeaLevel()));
         this.altitudeTextField.setText(String.format("%.0f", (double) this.bmp180.getAltitude()));
+        
+        this.lightTextField.setText(String.format("%.1f", (double) tsl2561.getFull()));
+        this.lightVisibleTextField.setText(String.format("%.1f", (double) tsl2561.getVisible()));
+        this.lightInfraTextField.setText(String.format("%.1f", (double) tsl2561.getInfrared()));
     }
     
 }
