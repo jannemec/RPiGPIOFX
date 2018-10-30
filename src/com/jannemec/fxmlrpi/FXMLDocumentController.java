@@ -5,17 +5,32 @@
  */
 package com.jannemec.fxmlrpi;
 
+import com.hopding.jrpicam.RPiCamera;
+import com.hopding.jrpicam.enums.Encoding;
+import com.hopding.jrpicam.enums.Exposure;
+import com.hopding.jrpicam.exceptions.FailedToRunRaspistillException;
+
 import com.jannemec.control.ClockControl;
 import com.jannemec.sensors.AM2321;
 import com.jannemec.sensors.BMP180;
+import com.jannemec.sensors.Button;
+import com.jannemec.sensors.MotionPIR;
 import com.jannemec.sensors.TSL2561;
+import com.jannemec.sensors.HCSR04;
+import com.jannemec.sensors.RainSBX;
+import com.jannemec.sensors.Sensor;
+
 import com.jannemec.tools.MemCache;
+import com.jannemec.tools.ActionListener;
+import java.io.File;
+
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.ActionEvent;
@@ -25,19 +40,27 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.util.Duration;
 import javafx.stage.Stage;
+import javafx.scene.control.CheckBox;
 
 /**
  *
  * @author u935
  */
-public class FXMLDocumentController implements Initializable {
+public class FXMLDocumentController implements Initializable, ActionListener {
     
     private Timeline timeline = null;
     protected SimpleDateFormat format = null;
+    protected SimpleDateFormat formatWithDate = null;
+    protected SimpleDateFormat formatCompact = null;
     protected com.jannemec.tools.MemCache mCache = null;
     protected com.jannemec.sensors.AM2321 am2321 = null;
     protected com.jannemec.sensors.BMP180 bmp180 = null;
-    protected com.jannemec.sensors.TSL2561 tsl2561;
+    protected com.jannemec.sensors.TSL2561 tsl2561 = null;
+    protected com.jannemec.sensors.RainSBX rainSBX = null;
+    protected com.jannemec.sensors.MotionPIR motionPIR = null;
+    protected com.jannemec.sensors.HCSR04 hcsr04 = null;
+    protected com.jannemec.sensors.Button button1 = null;
+    protected RPiCamera rPiCamera = null;
     
     @FXML
     private ClockControl clockControl;
@@ -67,9 +90,22 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     private TextField lightInfraTextField;
     
+    @FXML
+    private CheckBox rainCheckBox;
+    @FXML
+    private TextField rainTextField;
+    
+    @FXML
+    private CheckBox motionCheckBox;
+    @FXML
+    private TextField motionTextField;
+    
     
     @FXML
     private javafx.scene.control.Button closeButton;
+    
+    @FXML
+    private TextField distanceTextField;
     
     @FXML
     private void handleCloseButtonAction(ActionEvent event) {
@@ -87,6 +123,8 @@ public class FXMLDocumentController implements Initializable {
         
         this.tempTextField.setText("waiting for init");
         this.format = new SimpleDateFormat("HH:mm:ss");
+        this.formatWithDate = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+        this.formatCompact = new SimpleDateFormat("yyyyMMddHHmmss");
         
         timeline = new Timeline();
         timeline.setCycleCount(Timeline.INDEFINITE);
@@ -108,8 +146,40 @@ public class FXMLDocumentController implements Initializable {
         // Setup altitude based on position
         this.bmp180.setSensorAltitude(350);  // For Jesenice, Central Bohemia, Czech Republic
         
+        this.hcsr04 = new HCSR04(mCache);
+        
+        this.rainSBX = new RainSBX(mCache);
+        this.rainSBX.setInteruptMode(true);
+        this.rainSBX.setActionListener(this);
+        
+        this.motionPIR = new MotionPIR(mCache);
+        this.motionPIR.setInteruptMode(true);
+        this.motionPIR.setActionListener(this);
         
         this.tsl2561 = new TSL2561(mCache);
+        
+        this.button1 = new Button(mCache);
+        this.button1.setInteruptMode(true);
+        this.button1.setActionListener(this);
+        
+        try {
+            this.rPiCamera = new RPiCamera("/home/vlk/Dokumenty/rpi/RPiGPIOFX/photos");
+            this.rPiCamera
+                .setWidth(500).setHeight(500) // Set Camera to produce 500x500 images.
+                .setBrightness(75)                // Adjust Camera's brightness setting.
+                .setExposure(Exposure.AUTO)       // Set Camera's exposure.
+                .setTimeout(2)                    // Set Camera's timeout.
+                .setAddRawBayer(true)
+                .turnOffPreview()            // Turn on image preview
+		.setEncoding(Encoding.JPG);
+        } catch (FailedToRunRaspistillException e) {
+        }
+        // create listener on button
+        
+        
+        
+        
+        
         try {
             this.showValues();
         } catch (Exception ex) {
@@ -140,6 +210,65 @@ public class FXMLDocumentController implements Initializable {
         this.lightTextField.setText(String.format("%.1f", (double) tsl2561.getFull()));
         this.lightVisibleTextField.setText(String.format("%.1f", (double) tsl2561.getVisible()));
         this.lightInfraTextField.setText(String.format("%.1f", (double) tsl2561.getInfrared()));
+        
+        this.distanceTextField.setText(String.format("%.1f", (double) (hcsr04.getDistance() * 1000)));
+        /*
+        this.rainCheckBox.setSelected(this.rainSBX.isRain());
+        if (this.rainSBX.getLastChangeDate() == null) {
+            this.rainTextField.setText("---");
+        } else {
+            this.rainTextField.setText(this.format.format(this.rainSBX.getLastChangeDate()));
+        };*/
     }
-    
+
+    @Override
+    public void handleAction(Sensor sensor) {
+        Date dt = new Date();
+        System.out.println(this.formatCompact.format(dt) + " Signal from " + sensor.getClass().getName());
+        if (sensor.getClass().getName().equals("com.jannemec.sensors.RainSBX")) {
+            try {
+                this.rainCheckBox.setSelected(this.rainSBX.isRain());
+            } catch  (Exception e) {
+                
+            }
+            //System.out.println("RAIN sensor signal");// + (this.rainSBX.isRain() ? "ANO" : "NE"));
+            if (this.rainSBX.getLastChangeDate() == null) {
+                this.rainTextField.setText("---");
+            } else {
+                this.rainTextField.setText(this.formatWithDate.format(this.rainSBX.getLastChangeDate()));
+            }
+        }
+        
+        if (sensor.getClass().getName().equals("com.jannemec.sensors.MotionPIR")) {
+            try {
+                this.motionCheckBox.setSelected(this.motionPIR.isMovement());
+            } catch  (Exception e) {
+                
+            }
+            //System.out.println("RAIN sensor signal");// + (this.rainSBX.isRain() ? "ANO" : "NE"));
+            if (this.motionPIR.getLastChangeDate() == null) {
+                this.motionTextField.setText("---");
+            } else {
+                this.motionTextField.setText(this.formatWithDate.format(this.motionPIR.getLastChangeDate()));
+            }
+        }
+        
+        if (sensor.getClass().getName().equals("com.jannemec.sensors.Button")) {
+            try {
+                if (this.button1.isOn()) {
+                    // Take a picture
+                    if (!(this.rPiCamera == null)) {
+                        
+                        String filename = this.formatCompact.format(dt) + ".jpg";
+                        System.out.println("Picture " + filename);
+                        File image = this.rPiCamera.takeStill(filename, 650, 650);
+			System.out.println("New PNG image saved to:\n\t" + image.getAbsolutePath());
+                        //this.rPiCamera.takeStill(filename);
+                    }
+                }
+            } catch  (Exception e) {
+                System.out.println("Error " + e.getMessage());
+            }
+        }
+    }
 }
