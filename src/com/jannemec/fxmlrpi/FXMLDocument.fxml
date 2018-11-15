@@ -132,7 +132,6 @@
             <padding>
                 <Insets left="10.0" />
             </padding>
-        </Button>
-      
+        </Button>  
     </children>
 </GridPane>
