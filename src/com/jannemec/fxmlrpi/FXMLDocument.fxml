@@ -7,7 +7,6 @@
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import com.jannemec.control.*?>
 <?import com.jannemec.fxmlrpi.*?>
 
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jannemec.fxmlrpi.FXMLDocumentController">
@@ -33,8 +32,7 @@
     </rowConstraints>
     <children>
         <Label styleClass="my_label" text="Time:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-        <ClockControl fx:id="clockControl" text="??:??:??" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-        
+        <TextField fx:id="timeTextField" alignment="CENTER_RIGHT" editable="false" prefHeight="25.0" prefWidth="357.0" text="0.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
         
         <Label fx:id="tempLabel" styleClass="my_label" text="Temperature:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
         <TextField fx:id="tempTextField" alignment="CENTER_RIGHT" editable="false" prefHeight="25.0" prefWidth="357.0" text="0.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />

@@ -1,0 +1,27 @@
+Instructions:
+
+Create a file under  /etc/systemd/system/   with nano or vi and paste the example script below. eg.  sudo vi /etc/systemd/system/KlimaService.service
+Paste the code below in your new file:
+[Unit]
+Description = Java Service
+After network.target = KlimaService.service
+
+[Service]
+Type = forking
+ExecStart = /usr/local/bin/KlimaService.sh start
+ExecStop = /usr/local/bin/KlimaService.sh stop
+ExecReload = /usr/local/bin/KlimaService.sh reload
+
+[Install]
+WantedBy=multi-user.target
+
+Create a file with under /usr/local/bin/ eg. sudo vi /usr/local/bin/KlimaService.sh
+Paste de Code example below
+Modify the SERVICE_NAME, PATH_TO_JAR, and choose a PID_PATH_NAME for the file you are going to use to store your service ID.
+Write the file and give execution permisions ex. sudo chmod +x /usr/local/bin/KlimaService.sh
+Test that it runs ex. /usr/local/bin/./KlimaService.sh start
+Test that it stops ex. /usr/local/bin/./KlimaService.sh stop
+Test that it restarts ex. /usr/local/bin/./KlimaService.sh restart
+Enable the service with the command sudo systemctl enable KlimaService
+To run the service sudo systemctl start KlimaService.service
+To stop the service sudo systemctl stop KlimaService.service

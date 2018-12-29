@@ -89,6 +89,35 @@ public class Tools {
         }
     }
     
+    public void dbfKlimaCreateTable() throws SQLException {
+        if (this.conn != null) {
+            String sqlCreate = "CREATE TABLE IF NOT EXISTS klimalog"
+            + "  (id              INTEGER PRIMARY KEY AUTOINCREMENT  NOT NULL,"
+            + "   dttm            DATETIME                           NOT NULL,"
+            + "   temperature     REAL,"
+            + "   pressure        REAL,"
+            + "   humidity        REAL,"
+            + "   lightfull       REAL,"
+            + "   lightinfra      REAL,"
+            + "   lightvisible    REAL,"
+            + "   rain            INT)";
+
+            Statement stmt = this.conn.createStatement();
+            stmt.execute(sqlCreate);
+        } else {
+            throw(new SQLException("Connection not estabilished"));
+        }
+    }
+    
+    public void storeKlimaValues(Date dt, double temperature, double pressure, double humidity, double lightfull, double lightinfra, double lightvisible, boolean rain) throws SQLException {
+        Statement stmt = this.conn.createStatement();
+        String sql = "INSERT INTO klimalog (dttm, temperature, pressure, humidity, lightfull, lightinfra, lightvisible, rain) " +
+                        "VALUES ('" + Tools.getFormatter().format(dt) + "', " + Double.toString(temperature) + ", " + Double.toString(pressure)
+                + ", " + Double.toString(humidity) +", " + Double.toString(lightfull) +", " + Double.toString(lightinfra)
+                + ", " + Double.toString(lightvisible) + ", " + (rain ? 1 : 0) + ");"; 
+        stmt.executeUpdate(sql);
+    }
+    
     public void storeStringValue(Date dt, String name, String val) throws SQLException {
         Statement stmt = this.conn.createStatement();
         String sql = "INSERT INTO datalog (dttm, name, valstring) " +

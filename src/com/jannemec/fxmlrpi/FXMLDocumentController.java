@@ -23,6 +23,7 @@ import com.jannemec.sensors.TCS3200;
 
 import com.jannemec.tools.MemCache;
 import com.jannemec.tools.ActionListener;
+import com.jannemec.tools.TimerTaskParent;
 import com.jannemec.tools.Tools;
 import java.io.File;
 import java.io.FileInputStream;
@@ -67,6 +68,12 @@ import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import javafx.event.EventHandler;
 
 /**
  *
@@ -74,10 +81,11 @@ import java.sql.SQLException;
  */
 public class FXMLDocumentController implements Initializable, ActionListener {
     
-    private Timeline timeline = null;
-    protected SimpleDateFormat format = null;
-    protected SimpleDateFormat formatWithDate = null;
-    protected SimpleDateFormat formatCompact = null;
+    private Timeline timelineShow = null;
+    private Timeline timelineLog = null;
+    protected static SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+    protected static SimpleDateFormat formatWithDate = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+    protected static SimpleDateFormat formatCompact = new SimpleDateFormat("yyyyMMddHHmmss");
     protected com.jannemec.tools.MemCache mCache = null;
     protected com.jannemec.sensors.AM2321 am2321 = null;
     protected com.jannemec.sensors.BMP180 bmp180 = null;
@@ -92,21 +100,27 @@ public class FXMLDocumentController implements Initializable, ActionListener {
     protected Session session = null;
     protected Properties setup = null;
     protected Tools tools = null;
+    protected EventHandler<ActionEvent> eventShow = null;
+    protected EventHandler<ActionEvent> eventLog = null;
+    protected KeyFrame keyframeShow = null;
+    protected KeyFrame keyframeLog = null;
     
     @FXML
-    private ClockControl clockControl;
-    @FXML
-    private Label tempLabel;
+    private TextField timeTextField;
+    //@FXML
+    //private ClockControl clockControl;
+    //@FXML
+    //private Label tempLabel;
     @FXML
     private TextField tempTextField;
     @FXML
     private TextField temp2TextField;
-    @FXML
-    private Label humidLabel;
+    //@FXML
+    //private Label humidLabel;
     @FXML
     private TextField humidTextField;
-    @FXML
-    private Label pressLabel;
+    //@FXML
+    //private Label pressLabel;
     @FXML
     private TextField pressTextField;
     @FXML
@@ -131,12 +145,13 @@ public class FXMLDocumentController implements Initializable, ActionListener {
     @FXML
     private TextField motionTextField;
     
+    @FXML
+    private TextField distanceTextField;
     
     @FXML
     private javafx.scene.control.Button closeButton;
     
-    @FXML
-    private TextField distanceTextField;
+    
     
     //@FXML
     //private TextField colorTextField;
@@ -153,9 +168,41 @@ public class FXMLDocumentController implements Initializable, ActionListener {
         stage.close();
     }
     
+    private static final Logger LOGGER = Logger.getLogger(FXMLDocumentController.class.getName());
+    public Handler consoleHandler = null;
+    public Handler fileHandler  = null;
+    
+    private Timer timerLog = null;
+    private Timer timerShow = null;
+
+    
     @FXML
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        // Logger setup
+        Handler consoleHandler = null;
+        Handler fileHandler  = null;
+        try{
+            //Creating consoleHandler and fileHandler
+            consoleHandler = new ConsoleHandler();
+            fileHandler  = new FileHandler("./javafxml.log");
+            //Assigning handlers to LOGGER object
+            LOGGER.addHandler(consoleHandler);
+            LOGGER.addHandler(fileHandler);
+            //Setting levels to handlers and LOGGER
+            consoleHandler.setLevel(Level.ALL);
+            fileHandler.setLevel(Level.ALL);
+            LOGGER.setLevel(Level.ALL);
+            LOGGER.config("Logger Configuration done.");
+            //Console handler removed
+            //LOGGER.removeHandler(consoleHandler);
+            //LOGGER.log(Level.FINE, "Finer logged");
+        }catch(IOException exception){
+            LOGGER.log(Level.SEVERE, "Error occur in FileHandler.", exception);
+        }
+        //LOGGER.finer("Finest example on LOGGER handler completed.");
+
+                
         // read Properties
         this.setup = new Properties();
 	try {
@@ -173,9 +220,6 @@ public class FXMLDocumentController implements Initializable, ActionListener {
         
         // Prepare date forated
         this.tempTextField.setText("waiting for init");
-        this.format = new SimpleDateFormat("HH:mm:ss");
-        this.formatWithDate = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-        this.formatCompact = new SimpleDateFormat("yyyyMMddHHmmss");
         
         //Establishing a session with required user details
         this.session = Session.getInstance(this.setup, new javax.mail.Authenticator() {
@@ -189,30 +233,21 @@ public class FXMLDocumentController implements Initializable, ActionListener {
         try {
             this.tools.dbfConnect(this.setup.getProperty("dbf.connectionString").replace("currentDir", this.tools.getJarPath()));
             this.tools.dbfCreateTable();
+            this.tools.dbfKlimaCreateTable();
         } catch (SQLException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
         
-        timeline = new Timeline();
-        timeline.setCycleCount(Timeline.INDEFINITE);
-        // Test hodiny
-        /*
-        timeline.getKeyFrames().add(
-            new KeyFrame(Duration.seconds(1), (ActionEvent event) -> { 
-                Date dt = new Date();
-                this.tempTextField.setText(this.format.format(dt));     
-            } // KeyFrame event handler
-        ));
-        timeline.playFromStart();
-        */
+        
+        
         
         // Temperature
         this.am2321 = new AM2321(this.mCache);
@@ -227,41 +262,110 @@ public class FXMLDocumentController implements Initializable, ActionListener {
         this.rainSBX.setInteruptMode(true);
         this.rainSBX.setActionListener(this);
         
-        this.motionPIR = new MotionPIR(mCache);
-        this.motionPIR.setInteruptMode(true);
-        this.motionPIR.setActionListener(this);
+        //this.motionPIR = new MotionPIR(mCache);
+        //this.motionPIR.setInteruptMode(true);
+        //this.motionPIR.setActionListener(this);
         
         this.tsl2561 = new TSL2561(mCache);
         
-        this.button1 = new Button(mCache);
-        this.button1.setInteruptMode(true);
-        this.button1.setActionListener(this);
+        //this.button1 = new Button(mCache);
+        //this.button1.setInteruptMode(true);
+        //this.button1.setActionListener(this);
         
         this.tcs3200 = new TCS3200(mCache);
-        this.button2 = new Button(mCache, RaspiPin.GPIO_24);
-        this.button2.setInteruptMode(true);
-        this.button2.setActionListener(this);
+        //this.button2 = new Button(mCache, RaspiPin.GPIO_24);
+        //this.button2.setInteruptMode(true);
+        //this.button2.setActionListener(this);
         
         try {
             this.rPiCamera = new RPiCamera(setup.getProperty("camera.dir", "/home/vlk/Dokumenty/rpi/RPiGPIOFX/photos"));
             this.rPiCamera
                 .setWidth(500).setHeight(500) // Set Camera to produce 500x500 images.
-                .setBrightness(75)                // Adjust Camera's brightness setting.
+                .setBrightness(90)                // Adjust Camera's brightness setting.
                 .setExposure(Exposure.AUTO)       // Set Camera's exposure.
                 .setTimeout(2)                    // Set Camera's timeout.
+                .setContrast(100) 			// Set maximum contrast
+                .setSharpness(100)		    // Set maximum sharpness
+                .setQuality(75)
                 .setAddRawBayer(true)
                 .turnOffPreview()            // Turn on image preview
-		.setEncoding(Encoding.JPG);
-        } catch (FailedToRunRaspistillException e) {
+		.setEncoding(Encoding.PNG);
+        } catch (FailedToRunRaspistillException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        //} catch (UnsupportedEncodingException ex) {
+        //    LOGGER.log(Level.SEVERE, null, ex);
         }
 
         try {
             this.showValues();
         } catch (Exception ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
         System.out.println("App started!");
-        timeline.getKeyFrames().add(
+        //System.out.println("Log file: " + FXMLDocumentController.class.getClassLoader().getResource("logging.properties"));
+        
+        
+        // Timer version
+        this.timerLog = new Timer();
+        this.timerShow = new Timer();
+        
+        this.taskShow.setParent(this);
+        
+        this.timerLog.schedule(this.taskLog, Long.parseLong(setup.getProperty("general.logrefresh")) * 100, Long.parseLong(setup.getProperty("general.logrefresh")) * 1000);
+        this.timerShow.schedule(this.taskShow, Long.parseLong(setup.getProperty("general.refresh")) * 100, Long.parseLong(setup.getProperty("general.refresh")) * 1000);
+        /**
+         // TimeLine version
+         
+        this.eventShow = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                try {
+                    showValues();
+                    //timelineShow.stop();
+                    //timelineShow.playFromStart();
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, null, ex);
+                }
+            }
+        };
+        this.keyframeShow = new KeyFrame(Duration.seconds(Integer.parseInt(setup.getProperty("general.refresh"))), this.eventShow);
+        this.timelineShow = new Timeline(Timeline.INDEFINITE, this.keyframeShow);
+        this.timelineShow.setCycleCount(Timeline.INDEFINITE);
+        
+        this.eventLog = new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                try {
+                    System.out.println("Log run");
+                    logValues();
+                } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, null, ex);
+                }
+            }
+        };
+        this.keyframeLog = new KeyFrame(Duration.seconds(Integer.parseInt(setup.getProperty("general.logrefresh"))), this.eventLog);
+        this.timelineLog = new Timeline(Timeline.INDEFINITE, this.keyframeLog);
+        this.timelineLog.setCycleCount(Timeline.INDEFINITE);
+        
+        this.timelineShow.playFromStart();
+        this.timelineLog.playFromStart();
+        */
+        
+        
+        
+        
+        
+        /*
+        // Version with closures
+        this.timelineShow = new Timeline();
+        this.timelineShow.setAutoReverse(true);
+        this.timelineShow.setCycleCount(Timeline.INDEFINITE);
+        
+        this.timelineLog = new Timeline();
+        this.timelineLog.setAutoReverse(true);
+        this.timelineLog.setCycleCount(Timeline.INDEFINITE);
+        
+        this.timelineShow.getKeyFrames().add(
             new KeyFrame(Duration.seconds(Integer.parseInt(setup.getProperty("general.refresh"))), (ActionEvent event) -> { 
                 try {     
                     this.showValues();
@@ -270,12 +374,61 @@ public class FXMLDocumentController implements Initializable, ActionListener {
                 }
             } // KeyFrame event handler
         ));
-        timeline.playFromStart();
+        
+        this.timelineShow.playFromStart();
+        
+        this.timelineLog.getKeyFrames().add(
+            new KeyFrame(Duration.seconds(Integer.parseInt(setup.getProperty("general.logrefresh"))), (ActionEvent event) -> { 
+                try {     
+                    this.logValues();
+                } catch (Exception ex) {
+                    Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } // KeyFrame event handler
+        ));
+        this.timelineLog.playFromStart();
+        */
     }
 
-    private void showValues() throws  Exception {
+    public TimerTaskParent taskShow = new TimerTaskParent() {
+        @Override
+        public void run() {
+            try {
+                this.getParent().showValues();
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
+        }
+    };
+    
+    public TimerTask taskLog = new TimerTask() {
+        @Override
+        public void run() {
+            try {
+                logValues();
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
+        }
+    };
+    
+    public void logValues() throws  Exception {
+        // And we have to store values to dbf
+        Date dt = new Date();
+        this.tools.storeKlimaValues(dt, this.bmp180.getTemperature(), this.bmp180.getPressureAtSeaLevel(), this.am2321.getHumidity()
+                , tsl2561.getFull(), tsl2561.getInfrared(), tsl2561.getVisible(), this.rainSBX.isRain()); 
+    }
+    
+    public void showValues() throws  Exception {
+        Date dt = new Date();
+        //FXMLDocumentController.format = new SimpleDateFormat("HH:mm:ss");
+        this.timeTextField.setText(FXMLDocumentController.format.format(dt));
+        
+        //System.out.println("aaa " + FXMLDocumentController.format.format(dt));
+        
         this.humidTextField.setText(String.format("%.0f", (double) this.am2321.getHumidity()));
         this.tempTextField.setText(String.format("%.1f", (double) this.am2321.getTemperature()));
+        
         
         this.temp2TextField.setText(String.format("%.1f", (double) this.bmp180.getTemperature()));
         this.pressTextField.setText(String.format("%.0f", (double) this.bmp180.getPressure()));
@@ -287,48 +440,49 @@ public class FXMLDocumentController implements Initializable, ActionListener {
         this.lightInfraTextField.setText(String.format("%.1f", (double) tsl2561.getInfrared()));
         
         this.distanceTextField.setText(String.format("%.1f", (double) (hcsr04.getDistance() * 1000)));
+        /**/
         /*
         this.rainCheckBox.setSelected(this.rainSBX.isRain());
         if (this.rainSBX.getLastChangeDate() == null) {
             this.rainTextField.setText("---");
         } else {
-            this.rainTextField.setText(this.format.format(this.rainSBX.getLastChangeDate()));
+            this.rainTextField.setText(FXMLDocumentController.format.format(this.rainSBX.getLastChangeDate()));
         };*/
-        
-        // And we have to store values to dbf
-        Date dt = new Date();
-        this.tools.storeDoubleValue(dt, "temperature", this.bmp180.getTemperature());
     }
 
     @Override
     public void handleAction(Sensor sensor) {
+    }
+    
+    public void no(Sensor sensor) {
         Date dt = new Date();
-        System.out.println(this.formatCompact.format(dt) + " Signal from " + sensor.getClass().getName());
+        System.out.println(FXMLDocumentController.formatCompact.format(dt) + " Signal from " + sensor.getClass().getName());
         if (sensor.getClass().getName().equals("com.jannemec.sensors.RainSBX")) {
             try {
                 this.rainCheckBox.setSelected(this.rainSBX.isRain());
-            } catch  (Exception e) {
-                
+            } catch  (Exception ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+                //System.out.println(ex.getMessage());
             }
             //System.out.println("RAIN sensor signal");// + (this.rainSBX.isRain() ? "ANO" : "NE"));
             if (this.rainSBX.getLastChangeDate() == null) {
                 this.rainTextField.setText("---");
             } else {
-                this.rainTextField.setText(this.formatWithDate.format(this.rainSBX.getLastChangeDate()));
+                this.rainTextField.setText(FXMLDocumentController.formatWithDate.format(this.rainSBX.getLastChangeDate()));
             }
         }
         
         if (sensor.getClass().getName().equals("com.jannemec.sensors.MotionPIR")) {
             try {
                 this.motionCheckBox.setSelected(this.motionPIR.isMovement());
-            } catch  (Exception e) {
-                
+            } catch  (Exception ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
             }
             //System.out.println("RAIN sensor signal");// + (this.rainSBX.isRain() ? "ANO" : "NE"));
             if (this.motionPIR.getLastChangeDate() == null) {
                 this.motionTextField.setText("---");
             } else {
-                this.motionTextField.setText(this.formatWithDate.format(this.motionPIR.getLastChangeDate()));
+                this.motionTextField.setText(FXMLDocumentController.formatWithDate.format(this.motionPIR.getLastChangeDate()));
             }
         }
         
@@ -338,13 +492,13 @@ public class FXMLDocumentController implements Initializable, ActionListener {
                     // Načtení barvy
                     String color = this.tcs3200.getColor();
                     //this.colorTextField.setText(color);
-                    //this.colorDtTextField.setText(this.formatWithDate.format(this.motionPIR.getLastChangeDate()));
+                    //this.colorDtTextField.setText(FXMLDocumentController.formatWithDate.format(this.motionPIR.getLastChangeDate()));
                 }
                 if (this.button1.isOn()) {
                     // Take a picture
                     if (!(this.rPiCamera == null)) {
                         
-                        String filename = this.formatCompact.format(dt) + ".jpg";
+                        String filename = FXMLDocumentController.formatCompact.format(dt) + ".png";
                         System.out.println("Picture " + filename);
                         File image = this.rPiCamera.takeStill(filename, 650, 650);
 			System.out.println("New PNG image saved to:\n\t" + image.getAbsolutePath());
@@ -362,7 +516,7 @@ public class FXMLDocumentController implements Initializable, ActionListener {
                             msg.setRecipients(Message.RecipientType.TO, address);
                             String from = "jan.nemec@cscz.biz";
                             msg.setFrom(from);
-                            String timeStamp = formatWithDate.format(new Date());
+                            String timeStamp = FXMLDocumentController.formatWithDate.format(new Date());
                             msg.setSubject("Photo from RPi : " + timeStamp);
                             msg.setSentDate(new Date());
                             msg.setText("The photo taken from RPi - according to action");
@@ -381,8 +535,8 @@ public class FXMLDocumentController implements Initializable, ActionListener {
                         }
                     }
                 }
-            } catch  (Exception e) {
-                System.out.println("Error " + e.getMessage());
+            } catch  (Exception ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }
     }
