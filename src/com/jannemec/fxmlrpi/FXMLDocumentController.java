@@ -10,7 +10,7 @@ import com.hopding.jrpicam.enums.Encoding;
 import com.hopding.jrpicam.enums.Exposure;
 import com.hopding.jrpicam.exceptions.FailedToRunRaspistillException;
 
-import com.jannemec.control.ClockControl;
+//import com.jannemec.control.ClockControl;
 import com.jannemec.sensors.AM2321;
 import com.jannemec.sensors.BMP180;
 import com.jannemec.sensors.Button;

@@ -11,11 +11,14 @@
 
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jannemec.fxmlrpi.FXMLDocumentController">
     <columnConstraints>
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="293.0" minWidth="10.0" prefWidth="175.0" />
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="111.0" />
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="81.0" />
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="103.0" />
-        <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="133.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="293.0" minWidth="10.0" prefWidth="127.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="121.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="60.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="110.0" />
+        <ColumnConstraints hgrow="SOMETIMES" maxWidth="436.0" minWidth="10.0" prefWidth="150.0" />
+      <ColumnConstraints />
+      <ColumnConstraints />
+      <ColumnConstraints maxWidth="0.0" minWidth="0.0" prefWidth="0.0" />
     </columnConstraints>
     <rowConstraints>
         <RowConstraints maxHeight="75.0" minHeight="15.0" prefHeight="40.0" vgrow="SOMETIMES" />
@@ -88,7 +91,7 @@
             </padding>
         </Label>
         <TextField fx:id="lightVisibleTextField" alignment="CENTER_RIGHT" editable="false" prefHeight="25.0" prefWidth="357.0" text="0.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
-        <Label styleClass="my_unit" text="visible lux" GridPane.columnIndex="2" GridPane.rowIndex="6">
+        <Label styleClass="my_unit" text="vis lux" GridPane.columnIndex="2" GridPane.rowIndex="6">
             <padding>
                 <Insets left="10.0" />
             </padding>
@@ -111,11 +114,6 @@
         
         <Label fx:id="motionLabel" styleClass="my_label" text="Pohyb" GridPane.rowIndex="8" />
         <CheckBox fx:id="motionCheckBox" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="8" GridPane.valignment="CENTER" />
-        <Label styleClass="my_unit" text="Y/N" GridPane.columnIndex="8" GridPane.rowIndex="7">
-            <padding>
-                <Insets left="10.0" />
-            </padding>
-        </Label>
         <TextField fx:id="motionTextField" alignment="CENTER_RIGHT" editable="false" prefHeight="25.0" prefWidth="357.0" text="0.0" GridPane.columnIndex="3" GridPane.columnSpan="2" GridPane.rowIndex="8" />
         
         <Label fx:id="distanceLabel" styleClass="my_label" text="Distance" GridPane.rowIndex="9" />
